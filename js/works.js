@@ -1,0 +1,162 @@
+/* Works page: the studio's real works from its Telegram channel.
+   Filter by service and brand; open a work to swipe through its photos and read what was done.
+   Links: #tg383 opens a work, #f=tint filters by service, #brand=geely filters by brand. */
+(function () {
+  const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const nb = t => { let prev; do { prev = t; t = t.replace(/(^|[\s(«])([А-Яа-яЁё]{1,2})\s+/g, '$1$2 '); } while (t !== prev); return t.replace(/ —/g, ' —'); };
+  const json = id => { try { return JSON.parse(document.getElementById(id).textContent); } catch (e) { return null; } };
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const setHash = h => { try { history.replaceState(null, '', h ? '#' + h : location.pathname + location.search); } catch (e) {} };
+  const DATA = json('cases-data');
+  // request form options for each service category
+  const SERVICE = { ppf: 'ppf', wrap: 'wrap', polish: 'ceramic', dry: 'dry', tint: 'tint', equip: 'equip', style: 'style' };
+
+  function gallery() {
+    const byId = Object.fromEntries(DATA.list.map(c => [c.id, c]));
+    const cards = [...document.querySelectorAll('.wk-card')];
+    const chips = document.querySelector('.wk-filters'), brandSel = document.getElementById('wkBrand');
+    const shown = document.querySelector('[data-wk="shown"]'), empty = document.querySelector('.wk-empty');
+    let cat = 'all';
+
+    /* ---------- filter ---------- */
+    const apply = () => {
+      const brand = brandSel ? brandSel.value : '';
+      let n = 0;
+      cards.forEach(card => {
+        const on = (cat === 'all' || card.dataset.cats.split(' ').includes(cat)) && (!brand || card.dataset.brand === brand);
+        card.hidden = !on;
+        if (on) card.style.setProperty('--i', n++ % 3);
+      });
+      if (shown) shown.textContent = n;
+      if (empty) empty.hidden = n > 0;
+      chips.querySelectorAll('[data-f]').forEach(x => x.setAttribute('aria-pressed', String(x.dataset.f === cat)));
+    };
+    const setCat = f => { cat = chips.querySelector(`[data-f="${f}"]`) ? f : 'all'; apply(); };
+    chips.addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) setCat(b.dataset.f); });
+    if (brandSel) brandSel.addEventListener('change', apply);
+    apply();
+
+    /* ---------- reveal cards as they scroll in ---------- */
+    if (!reduce() && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -6% 0px', threshold: .08 });
+      cards.forEach(c => { c.classList.add('rv'); io.observe(c); });
+    }
+
+    /* ---------- work sheet with a swipeable photo gallery ---------- */
+    const modal = document.getElementById('wkModal'), sheet = modal.querySelector('.wk-sheet');
+    const track = document.getElementById('wkTrack'), thumbs = document.getElementById('wkThumbs'), counter = document.getElementById('wkCounter');
+    const prevB = modal.querySelector('.wk-arrow.prev'), nextB = modal.querySelector('.wk-arrow.next');
+    const $ = id => document.getElementById(id);
+    let lastFocus = null, current = null, idx = 0, count = 0, raf = 0;
+
+    const mark = i => {
+      idx = Math.max(0, Math.min(count - 1, i));
+      counter.textContent = `${idx + 1} / ${count}`;
+      prevB.disabled = idx === 0; nextB.disabled = idx >= count - 1;
+      [...thumbs.children].forEach((t, k) => t.setAttribute('aria-current', String(k === idx)));
+      const t = thumbs.children[idx];
+      if (t) thumbs.scrollTo({ left: t.offsetLeft - (thumbs.clientWidth - t.offsetWidth) / 2, behavior: reduce() ? 'auto' : 'smooth' });
+    };
+    const go = i => {
+      i = Math.max(0, Math.min(count - 1, i));
+      track.scrollTo({ left: i * track.clientWidth, behavior: reduce() ? 'auto' : 'smooth' });
+      mark(i);
+    };
+    track.addEventListener('scroll', () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => { const i = Math.round(track.scrollLeft / Math.max(1, track.clientWidth)); if (i !== idx) mark(i); });
+    }, { passive: true });
+    prevB.addEventListener('click', () => go(idx - 1));
+    nextB.addEventListener('click', () => go(idx + 1));
+    thumbs.addEventListener('click', e => { const b = e.target.closest('button[data-i]'); if (b) go(+b.dataset.i); });
+
+    const text = c => {
+      const box = $('wkText'); box.textContent = '';
+      let ul = null;
+      (c.body || []).forEach(b => {
+        if (b.t !== 'li') { ul = null; box.appendChild(el('p', null, nb(b.s))); return; }
+        if (!ul) { ul = el('ul'); box.appendChild(ul); }
+        const li = el('li', null, nb(b.s) + (b.sub && b.sub.length ? ':' : ''));
+        if (b.sub && b.sub.length) { const sub = el('ul'); b.sub.forEach(s => sub.appendChild(el('li', null, nb(s)))); li.appendChild(sub); }
+        ul.appendChild(li);
+      });
+    };
+
+    const open = (id, viaLink) => {
+      const c = byId[id]; if (!c) return;
+      current = c; lastFocus = viaLink ? null : document.activeElement;
+      $('wkCat').textContent = c.catNames;
+      $('wkTitle').textContent = c.title;
+      $('wkDate').textContent = c.dateLabel;
+      $('wkSrc').href = c.source;
+      text(c);
+      count = c.photos.length;
+      track.textContent = ''; thumbs.textContent = '';
+      c.photos.forEach((src, i) => {
+        const slide = el('div', 'wk-slide'), img = el('img');
+        img.src = src; img.alt = `${c.title}, фото ${i + 1} из ${count}`; img.decoding = 'async'; img.draggable = false;
+        slide.appendChild(img); track.appendChild(slide);
+        const tb = el('button'), ti = el('img');
+        tb.type = 'button'; tb.dataset.i = i; tb.setAttribute('aria-label', `Фото ${i + 1} из ${count}`);
+        ti.src = src; ti.alt = ''; tb.appendChild(ti); thumbs.appendChild(tb);
+      });
+      modal.classList.toggle('one', count < 2);
+      modal.hidden = false; document.body.style.overflow = 'hidden';
+      track.scrollLeft = 0; sheet.scrollTop = 0; mark(0);
+      modal.querySelector('.wk-close').focus();
+      setHash(id);
+    };
+    const close = () => {
+      if (modal.hidden) return;
+      modal.hidden = true; document.body.style.overflow = '';
+      track.textContent = ''; thumbs.textContent = '';
+      setHash('');
+      const card = current && cards.find(x => x.dataset.id === current.id);
+      if (lastFocus && lastFocus.isConnected) lastFocus.focus({ preventScroll: true });
+      else if (card) card.focus({ preventScroll: true });
+    };
+    cards.forEach(card => {
+      card.addEventListener('click', () => open(card.dataset.id));
+      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(card.dataset.id); } });
+    });
+    modal.addEventListener('click', e => { if (e.target === modal) close(); });
+    modal.querySelector('.wk-close').addEventListener('click', close);
+    document.addEventListener('keydown', e => {
+      if (modal.hidden) return;
+      if (e.key === 'Escape') { close(); return; }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); go(idx + (e.key === 'ArrowRight' ? 1 : -1)); return; }
+      if (e.key !== 'Tab') return;
+      const fs = [...sheet.querySelectorAll('button:not([disabled]), [href], [tabindex="0"]')].filter(x => x.offsetParent !== null);
+      if (!fs.length) return;
+      if (e.shiftKey && document.activeElement === fs[0]) { e.preventDefault(); fs[fs.length - 1].focus(); }
+      else if (!e.shiftKey && document.activeElement === fs[fs.length - 1]) { e.preventDefault(); fs[0].focus(); }
+    });
+    addEventListener('resize', () => { if (!modal.hidden) track.scrollLeft = idx * track.clientWidth; });
+
+    $('wkWant').addEventListener('click', () => {
+      const c = current; close();
+      const note = document.getElementById('fNote'), svc = document.getElementById('fService');
+      if (note) note.value = `Хочу как в работе «${c.title}», ${c.dateLabel.toLowerCase()}`;
+      if (svc) svc.value = SERVICE[c.cat] || 'other';
+      const ct = document.getElementById('contacts'); if (ct) ct.scrollIntoView({ behavior: reduce() ? 'auto' : 'smooth' });
+      if (window.Site) window.Site.toast('Работа добавлена в заявку. Осталось оставить телефон.');
+    });
+
+    /* ---------- links from other pages ---------- */
+    const fromHash = () => {
+      const h = decodeURIComponent(location.hash.slice(1));
+      if (!h) return;
+      const kv = h.match(/^(f|brand)=([\w-]+)$/);
+      if (kv) {
+        if (kv[1] === 'f') setCat(kv[2]);
+        else if (brandSel) { brandSel.value = kv[2]; if (brandSel.value !== kv[2]) brandSel.value = ''; apply(); }
+        const list = document.querySelector('.wk-list'); if (list) list.scrollIntoView();
+      } else if (byId[h]) open(h, true);
+    };
+    fromHash();
+    addEventListener('hashchange', fromHash);
+  }
+
+  const init = () => { if (DATA && document.querySelector('.wk-grid')) try { gallery(); } catch (e) { console.error(e); } };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
