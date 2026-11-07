@@ -45,8 +45,10 @@
     };
     const seat = (g, isClean) => {
       const { sx, sy, sw, sh, ix, iy, iw, ih } = geo;
-      let gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#f3f5f7'); gr.addColorStop(1, '#dde1e6'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
-      gr = g.createRadialGradient(sx + sw / 2, sy + sh, 0, sx + sw / 2, sy + sh, sw * .55); gr.addColorStop(0, 'rgba(0,0,0,.28)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      // тёмный бокс, сверху на сиденье светит лампа
+      let gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#121820'); gr.addColorStop(1, '#05080b'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+      gr = g.createRadialGradient(w / 2, -h * .15, 0, w / 2, -h * .15, Math.max(w, h) * .85); gr.addColorStop(0, 'rgba(200,230,255,.2)'); gr.addColorStop(1, 'rgba(200,230,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+      gr = g.createRadialGradient(sx + sw / 2, sy + sh, 0, sx + sw / 2, sy + sh, sw * .55); gr.addColorStop(0, 'rgba(0,0,0,.6)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
       g.fillStyle = gr; g.beginPath(); g.ellipse(sx + sw / 2, sy + sh, sw * .55, sh * .12, 0, 0, Math.PI * 2); g.fill();
       gr = g.createLinearGradient(0, sy, 0, sy + sh); gr.addColorStop(0, '#4a525b'); gr.addColorStop(1, '#2b3036'); g.fillStyle = gr; rr(g, sx, sy, sw, sh, sh * .2); g.fill();
       g.save(); rr(g, ix, iy, iw, ih, 18); g.clip();

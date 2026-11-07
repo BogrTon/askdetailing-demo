@@ -25,7 +25,7 @@
       cards.forEach(card => {
         const on = (cat === 'all' || card.dataset.cats.split(' ').includes(cat)) && (!brand || card.dataset.brand === brand);
         card.hidden = !on;
-        if (on) card.style.setProperty('--i', n++ % 3);
+        if (on) { card.style.setProperty('--i', n % 3); card.dataset.num = String(n + 1).padStart(2, '0'); n++; }
       });
       if (shown) shown.textContent = n;
       if (empty) empty.hidden = n > 0;
@@ -35,6 +35,38 @@
     chips.addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (b) setCat(b.dataset.f); });
     if (brandSel) brandSel.addEventListener('change', apply);
     apply();
+
+    /* ---------- view: tiles or a list like a magazine index, with a photo peeking next to the cursor ---------- */
+    const grid = document.querySelector('.wk-grid'), viewSeg = document.querySelector('.wk-view');
+    const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+    const setView = v => {
+      grid.classList.toggle('as-list', v === 'list');
+      if (viewSeg) viewSeg.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === v)));
+    };
+    if (viewSeg) viewSeg.addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (!b) return; setView(b.dataset.view); store.set('wk-view', b.dataset.view); });
+    setView(store.get('wk-view') === 'list' ? 'list' : 'grid');
+    if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      const peek = el('div', 'wk-peek'), pimg = el('img'); pimg.alt = ''; peek.setAttribute('aria-hidden', 'true'); peek.appendChild(pimg); document.body.appendChild(peek);
+      let px = 0, py = 0, tx = 0, ty = 0, raf2 = 0, shown = false;
+      const step = () => {
+        px += (tx - px) * (reduce() ? 1 : .18); py += (ty - py) * (reduce() ? 1 : .18);
+        peek.style.transform = `translate3d(${px.toFixed(1)}px,${py.toFixed(1)}px,0)`;
+        raf2 = shown || Math.abs(tx - px) > .5 ? requestAnimationFrame(step) : 0;
+      };
+      const aim = e => {
+        const w = peek.offsetWidth || 280, h = peek.offsetHeight || 210;
+        tx = Math.min(innerWidth - w - 16, e.clientX + 28); ty = Math.max(16, Math.min(innerHeight - h - 16, e.clientY - h / 2));
+      };
+      grid.addEventListener('pointerover', e => {
+        if (!grid.classList.contains('as-list') || e.pointerType !== 'mouse') return;
+        const card = e.target.closest('.wk-card'); if (!card) return;
+        const src = card.querySelector('.wk-vis img'); if (src) pimg.src = src.currentSrc || src.src;
+        aim(e); if (!shown) { px = tx; py = ty; } shown = true; peek.classList.add('on'); if (!raf2) raf2 = requestAnimationFrame(step);
+      });
+      grid.addEventListener('pointermove', e => { if (shown) aim(e); });
+      grid.addEventListener('pointerleave', () => { shown = false; peek.classList.remove('on'); });
+      grid.addEventListener('click', () => { shown = false; peek.classList.remove('on'); });
+    }
 
     /* ---------- reveal cards as they scroll in ---------- */
     if (!reduce() && 'IntersectionObserver' in window) {

@@ -256,7 +256,7 @@
   }
   function menu() {
     const btn = document.querySelector('.burger'), m = document.getElementById('mmenu'); if (!btn || !m) return;
-    const set = open => { m.hidden = !open; btn.setAttribute('aria-expanded', String(open)); document.body.style.overflow = open ? 'hidden' : ''; };
+    const set = open => { m.hidden = !open; btn.setAttribute('aria-expanded', String(open)); document.body.classList.toggle('menu-open', open); document.body.style.overflow = open ? 'hidden' : ''; };
     btn.addEventListener('click', () => set(m.hidden));
     m.addEventListener('click', e => { if (e.target.closest('a')) set(false); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && !m.hidden) { set(false); btn.focus(); } });
@@ -318,19 +318,8 @@
     io.observe(b);
   }
 
-  /* nav turns dark while it sits over a dark band */
-  function navTone() {
-    const nav = document.querySelector('.nav'); if (!nav) return;
-    const darks = [...document.querySelectorAll('.hs, .band.night, .ppf-hero, .pl-hero')];
-    let tick = false;
-    const upd = () => { tick = false; const y = nav.getBoundingClientRect().bottom + 1; nav.classList.toggle('on-dark', darks.some(s => { const r = s.getBoundingClientRect(); return r.top <= y && r.bottom > y; })); };
-    addEventListener('scroll', () => { if (!tick) { tick = true; requestAnimationFrame(upd); } }, { passive: true });
-    addEventListener('resize', upd); upd();
-  }
-
   function init() {
     try { typo(); } catch (e) { console.error(e); }
-    try { navTone(); } catch (e) { console.error(e); }
     try { illos(); } catch (e) { console.error(e); }
     const run = (sel, fn) => { const el = document.querySelector(sel); if (el) try { fn(el); } catch (e) { console.error(e); } };
     run('.hs', Scenes.hero); run('.hl-rail', Scenes.highlights); run('.ba:not([data-draw])', Scenes.ba);

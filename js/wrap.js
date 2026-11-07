@@ -18,7 +18,7 @@
     dotsBox.innerHTML = seq.map(c => `<span class="wr-dot"><i style="background:${c.hex}"></i><span>${c.name}</span></span>`).join('');
     const dots = [...dotsBox.children];
     let cur = stopsOf(seq[0]), idx = -1;
-    host.innerHTML = Car.carSVG('wh', { stops: cur, reflect: true, shadowOpacity: .35, label: 'Автомобиль меняет цвет плёнки' });
+    host.innerHTML = Car.carSVG('wh', { stops: cur, reflect: true, shadowOpacity: .8, label: 'Автомобиль меняет цвет плёнки' });
     const grad = host.querySelector('#wh-paint');
     const show = i => {
       if (i === idx) return; idx = i;
