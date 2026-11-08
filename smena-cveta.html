@@ -10,6 +10,7 @@
 <meta name="theme-color" content="#070a0f">
 <meta name="color-scheme" content="dark">
 <meta name="format-detection" content="telephone=no">
+<meta name="ask-order" content="https://t.me/Kirill_ASK_Detailing">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -20,13 +21,13 @@
 <meta property="og:description" content="Смена цвета автомобиля плёнкой в Твери: винил и цветной полиуретан, глянец, сатин, мат, хром и хамелеон. Примерьте цвет на машине онлайн.">
 <link rel="preload" href="css/fonts/onest-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="css/fonts/unbounded-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="css/site.css?v=21addfdc">
+<link rel="stylesheet" href="css/site.css?v=0502b03c">
 <script>document.documentElement.classList.add('js');try{if(sessionStorage.getItem('ask-ld')||location.hash)document.documentElement.classList.add('ld-seen')}catch(e){document.documentElement.classList.add('ld-seen')}</script>
 
 
 </head>
 <body>
-<div class="ribbon"><div class="wrap"><b>Демо-версия сайта ASK Detailing.</b> Работы и контакты из Telegram-канала студии, цены и часть текстов условные, заявки пока не отправляются.</div></div>
+<div class="ribbon"><div class="wrap"><b>Демо-версия сайта ASK Detailing.</b> Работы и контакты из Telegram-канала студии, цены и часть текстов условные.</div></div>
 
 <header class="nav">
   <div class="wrap">
@@ -100,7 +101,7 @@
           <span class="flabel">Полная оклейка седана</span>
           <div class="calc-price" id="wrPrice">от 140 000 ₽</div>
           <div class="calc-meta" id="wrMeta">Винил · около 5 дней в студии</div>
-          <button class="btn primary" type="button" id="wrSend">Записаться с этим цветом</button>
+          <a class="btn primary" id="wrSend" href="https://t.me/Kirill_ASK_Detailing" target="_blank" rel="noopener">Записаться с этим цветом</a>
           <p class="calc-fine">Цвет на экране отличается от настоящей плёнки. Перед оклейкой покажем образцы при дневном свете. Цены ориентировочные и не являются публичной офертой.</p>
         </div>
       </div>
@@ -186,7 +187,7 @@
         <div class="c-line"><span>Телефоны</span><b><a href="tel:+79622441440">+7 962 244-14-40</a><a href="tel:+79201780708">+7 920 178-07-08</a></b></div>
         <div class="c-line"><span>Часы работы</span><b>По записи</b></div>
         <div class="c-btns">
-          <a class="c-btn" href="https://t.me/Kirill_ASK_Detailing" target="_blank" rel="noopener">Написать в Telegram</a>
+          <a class="c-btn" href="https://t.me/Kirill_ASK_Detailing" target="_blank" rel="noopener" data-tg>Написать в Telegram</a>
           <a class="c-btn" href="https://t.me/askdetailing" target="_blank" rel="noopener">Канал с работами</a>
           <a class="c-btn" href="#" data-ph="Здесь будет ссылка на чат студии в MAX, если он есть.">MAX</a>
           <a class="c-btn" href="#" data-ph="Здесь будет ссылка на группу VK, если она есть.">VK</a>
@@ -200,23 +201,20 @@
           <a class="btn line small" href="https://yandex.ru/maps/?text=%D0%A2%D0%B2%D0%B5%D1%80%D1%8C%2C%204-%D1%8F%20%D0%9A%D1%80%D0%B0%D1%81%D0%BD%D0%BE%D0%B9%20%D0%A1%D0%BB%D0%BE%D0%B1%D0%BE%D0%B4%D1%8B%2C%2026%D0%B0" target="_blank" rel="noopener">Открыть в Яндекс Картах</a>
         </div>
       </div>
-      <form class="form" id="requestForm" action="" method="post" enctype="multipart/form-data" data-endpoint="" data-phone="+7 962 244-14-40" novalidate>
-        <h3>Пришлите фото — посчитаем.</h3>
-        <p class="note">Мастер ответит с вилкой цены и свободными датами.</p>
+      <form class="form tg-form" id="requestForm" novalidate>
+        <h3>Напишите нам в Telegram.</h3>
+        <p class="note">Выберите услугу и машину — сообщение соберётся само. В Telegram останется нажать «Отправить».</p>
         <div class="fgrid">
-          <div class="field"><label for="fName">Имя</label><input id="fName" name="name" autocomplete="given-name"></div>
-          <div class="field"><label for="fPhone">Телефон</label><input id="fPhone" name="phone" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__"></div>
-          <div class="field"><label for="fService">Услуга</label><select id="fService" name="service"><option value="ppf">Защитная плёнка</option><option value="wrap">Смена цвета</option><option value="ceramic">Полировка и керамика</option><option value="dry">Химчистка</option><option value="tint">Тонировка</option><option value="equip">Доп. оборудование</option><option value="style">Антихром и стайлинг</option><option value="other">Другое</option></select></div>
-          <div class="field"><label for="fCar">Машина</label><input id="fCar" name="car" placeholder="Марка, модель, год"></div>
-          <div class="field full"><label for="fNote">Комментарий</label><textarea id="fNote" name="note" placeholder="Что нужно сделать"></textarea></div>
-          <div class="field full"><label for="fPhotos">Фото машины</label><input id="fPhotos" name="photos[]" type="file" accept="image/*" multiple><div class="files"></div></div>
+          <div class="field"><label for="fService">Услуга</label><select id="fService" name="service"><option value="">Пока не знаю</option><option value="ppf">Защитная плёнка</option><option value="wrap">Смена цвета</option><option value="ceramic">Полировка и керамика</option><option value="dry">Химчистка</option><option value="tint">Тонировка</option><option value="equip">Доп. оборудование</option><option value="style">Антихром и стайлинг</option><option value="other">Другое</option></select></div>
+          <div class="field"><label for="fCar">Машина</label><input id="fCar" name="car" placeholder="Марка, модель, год" autocomplete="off" maxlength="80"></div>
+          <div class="field full"><label for="fNote">Комментарий</label><textarea id="fNote" name="note" placeholder="Что нужно сделать" maxlength="600"></textarea></div>
         </div>
-        <div class="hp" aria-hidden="true"><label>Компания <input name="company" tabindex="-1" autocomplete="off"></label></div>
-        <input type="hidden" name="t" value="">
-        <label class="consent"><input type="checkbox" id="fConsent" name="consent" value="1"><span>Даю <a href="soglasie.html#forma">согласие на обработку персональных данных</a></span></label>
-        <p class="consent-note">Как мы храним и защищаем данные — в <a href="politika.html">политике обработки персональных данных</a>.</p>
-        <button class="btn primary" type="submit">Отправить заявку</button>
-        <p class="form-msg" aria-live="polite"></p>
+        <div class="tg-msg">
+          <p class="tg-to">Сообщение для <b data-tg-to>@Kirill_ASK_Detailing</b></p>
+          <p class="tg-text" data-tg-text>Здравствуйте! Пишу с сайта ASK Detailing. Хочу записаться на осмотр.</p>
+        </div>
+        <a class="btn primary tg-send" id="fSend" href="https://t.me/Kirill_ASK_Detailing" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4L3 11l6 2 2 6 3-4 5 4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Написать в Telegram</a>
+        <p class="consent-note">Сайт ничего не сохраняет и никуда не отправляет: сообщение уйдёт, только когда вы сами нажмёте «Отправить» в Telegram. Фото машины прикрепите там же. Как мы обращаемся с перепиской — в <a href="politika.html">политике обработки персональных данных</a>.</p>
       </form>
     </div>
   </div>
@@ -245,7 +243,7 @@
 
 <nav class="mbar" aria-label="Быстрая связь">
   <a href="tel:+79622441440"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 3.5l2.6 3.4-1.7 2.2a12 12 0 0 0 5.4 5.4l2.2-1.7 3.4 2.6-1.4 3.1c-.3.6-1 1-1.7.9C9.9 18.6 5.4 14.1 4.6 8.6c-.1-.7.3-1.4.9-1.7z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span>Позвонить</span></a>
-  <a href="https://t.me/Kirill_ASK_Detailing" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4L3 11l6 2 2 6 3-4 5 4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span>Telegram</span></a>
+  <a href="https://t.me/Kirill_ASK_Detailing" target="_blank" rel="noopener" data-tg><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 4L3 11l6 2 2 6 3-4 5 4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span>Telegram</span></a>
   <a href="#" data-ph="Здесь будет ссылка на чат студии в MAX, если он есть."><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><span>MAX</span></a>
   <a href="./#calc"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 7h8M8 12h2M12 12h2M16 12h0M8 16h2M12 16h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>Расчёт</span></a>
 </nav>
@@ -255,8 +253,8 @@
 <script src="js/car.js?v=fc2ad631"></script>
 <script src="js/scenes.js?v=16b79ddb"></script>
 <script src="js/light.js?v=cc0d6f44"></script>
-<script src="js/wrap.js?v=75b3437c"></script>
-<script src="js/tools.js?v=8ee8fc7c"></script>
+<script src="js/wrap.js?v=38299508"></script>
+<script src="js/tools.js?v=215d7115"></script>
 
 
 </body>

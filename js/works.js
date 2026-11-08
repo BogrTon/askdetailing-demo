@@ -8,8 +8,6 @@
   const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
   const setHash = h => { try { history.replaceState(null, '', h ? '#' + h : location.pathname + location.search); } catch (e) {} };
   const DATA = json('cases-data');
-  // request form options for each service category
-  const SERVICE = { ppf: 'ppf', wrap: 'wrap', polish: 'ceramic', dry: 'dry', tint: 'tint', equip: 'equip', style: 'style' };
 
   function gallery() {
     const byId = Object.fromEntries(DATA.list.map(c => [c.id, c]));
@@ -165,13 +163,10 @@
     });
     addEventListener('resize', () => { if (!modal.hidden) track.scrollLeft = idx * track.clientWidth; });
 
-    $('wkWant').addEventListener('click', () => {
-      const c = current; close();
-      const note = document.getElementById('fNote'), svc = document.getElementById('fService');
-      if (note) note.value = `Хочу как в работе «${c.title}», ${c.dateLabel.toLowerCase()}`;
-      if (svc) svc.value = SERVICE[c.cat] || 'other';
-      const ct = document.getElementById('contacts'); if (ct) ct.scrollIntoView({ behavior: reduce() ? 'auto' : 'smooth' });
-      if (window.Site) window.Site.toast('Работа добавлена в заявку. Осталось оставить телефон.');
+    // «Хочу так же» opens Telegram with the work and a link to its post in the studio channel
+    if (window.Site && Site.tgLink) Site.tgLink($('wkWant'), () => {
+      const c = current; if (!c) return Site.hello('Хочу записаться на осмотр.');
+      return `Здравствуйте! Хочу так же, как в работе «${c.title}» (${c.dateLabel.toLowerCase()}).` + (c.source ? `\n${c.source}` : '');
     });
 
     /* ---------- links from other pages ---------- */

@@ -1,4 +1,4 @@
-/* Tools: calculator, compare table, works filter, request form, cookie notice, menu, placeholders */
+/* Tools: calculator, compare table, works filter, request to Telegram, cookie notice, menu, placeholders */
 (function () {
   const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fmt = n => Math.round(n).toLocaleString('ru-RU');
@@ -13,7 +13,29 @@
     if (!t) { t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
     t.textContent = text; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3600);
   }
-  window.Site = { toast };
+  /* ---------- requests go to Telegram: the site prepares the text, the visitor presses «Отправить» ---------- */
+  // Nothing is stored or sent by the site. t.me/<username> and t.me/+<phone> accept ?text= and put it into the message box;
+  // any other link (for example a Telegram Business chat link t.me/m/…) opens as it is, and our text goes to the clipboard.
+  const ORDER = ((document.querySelector('meta[name="ask-order"]') || {}).content || '').trim();
+  const SITE = ((document.querySelector('meta[property="og:site_name"]') || {}).content || 'ASK Detailing').trim();
+  const TG_RE = /^https?:\/\/t\.me\/(\+\d{7,15}|[A-Za-z][A-Za-z0-9_]{3,31})\/?$/;
+  const tgHref = text => {
+    const m = TG_RE.exec(ORDER);
+    return m ? { href: `https://t.me/${m[1]}?text=${encodeURIComponent(text)}`, prefill: true } : { href: ORDER, prefill: false };
+  };
+  const tgTo = () => { const m = TG_RE.exec(ORDER); return m ? (m[1][0] === '+' ? m[1] : '@' + m[1]) : 'студии'; };
+  const copy = text => navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(text).then(() => true, () => false) : Promise.resolve(false);
+  // a link that opens Telegram with the text from getText(); the href is filled in on click, so it always carries the latest text
+  function tgLink(a, getText) {
+    if (!a || !ORDER) return;
+    a.addEventListener('click', () => {
+      const text = getText(), h = tgHref(text);
+      a.href = h.href;
+      if (!h.prefill) copy(text).then(ok => { if (ok) toast('Текст сообщения скопирован: вставьте его в чат и отправьте.'); });
+    });
+  }
+  const hello = extra => `Здравствуйте! Пишу с сайта ${SITE}.` + (extra ? ' ' + extra : '');
+  window.Site = { toast, tgHref, tgLink, hello, SITE };
 
   /* ---------- calculator ---------- */
   const ZONES = [
@@ -100,14 +122,8 @@
       if (c) { st.color = c.dataset.c; paint(); render(); return; }
       const b = e.target.closest('.seg[data-g] button');
       if (b) { const g = b.parentElement.dataset.g; if (st[g] !== b.dataset.v) { st[g] = b.dataset.v; if (g === 'mode' || g === 'fin') paint(); render(); } return; }
-      if (e.target.closest('#calcSend')) {
-        const note = document.getElementById('fNote'), svc = document.getElementById('fService');
-        if (note) note.value = summary;
-        if (svc) svc.value = st.mode === 'ppf' ? 'ppf' : 'wrap';
-        document.getElementById('contacts')?.scrollIntoView({ behavior: reduce() ? 'auto' : 'smooth' });
-        toast('Расчёт добавлен в заявку. Осталось оставить телефон.');
-      }
     });
+    tgLink(root.querySelector('#calcSend'), () => `Здравствуйте! Посчитал стоимость на сайте ${SITE}.\n${summary}.\nПодскажите, пожалуйста, свободные даты для осмотра.`);
     render();
   }
 
@@ -160,66 +176,24 @@
     });
   }
 
-  /* ---------- request form ---------- */
-  // Large photos are shrunk in the browser to 1600 px before upload: faster on mobile data, fits hosting limits.
-  async function shrink(file) {
-    if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size < 700 * 1024 || !window.createImageBitmap) return file;
-    try {
-      const bmp = await createImageBitmap(file);
-      const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
-      const cv = document.createElement('canvas');
-      cv.width = Math.round(bmp.width * k); cv.height = Math.round(bmp.height * k);
-      cv.getContext('2d').drawImage(bmp, 0, 0, cv.width, cv.height);
-      const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', .84));
-      return blob && blob.size < file.size ? new File([blob], file.name.replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' }) : file;
-    } catch (e) { return file; }
-  }
-
+  /* ---------- request: the form builds a message, Telegram opens with it ---------- */
   function form(f) {
     if (!f) return;
-    const phone = f.querySelector('#fPhone'), files = f.querySelector('#fPhotos'), thumbs = f.querySelector('.files'), msg = f.querySelector('.form-msg');
-    const btn = f.querySelector('button[type="submit"]'), consent = f.querySelector('#fConsent');
-    let opened = Date.now();
-    const say = (text, kind) => { msg.textContent = text; msg.classList.toggle('ok', kind === 'ok'); msg.classList.toggle('err', kind === 'err'); };
-    phone.addEventListener('input', () => {
-      let d = phone.value.replace(/\D/g, ''); if (d.startsWith('8')) d = '7' + d.slice(1); if (!d.startsWith('7')) d = '7' + d; d = d.slice(0, 11);
-      const p = [d.slice(1, 4), d.slice(4, 7), d.slice(7, 9), d.slice(9, 11)];
-      phone.value = '+7' + (p[0] ? ' (' + p[0] : '') + (p[0].length === 3 ? ')' : '') + (p[1] ? ' ' + p[1] : '') + (p[2] ? '-' + p[2] : '') + (p[3] ? '-' + p[3] : '');
-    });
-    files.addEventListener('change', () => {
-      thumbs.innerHTML = '';
-      [...files.files].slice(0, 8).forEach(file => { if (!file.type.startsWith('image/')) return; const img = document.createElement('img'); img.alt = file.name; img.src = URL.createObjectURL(file); thumbs.appendChild(img); });
-    });
-    f.addEventListener('submit', async e => {
-      e.preventDefault();
-      if (f.classList.contains('sending')) return;
-      const digits = phone.value.replace(/\D/g, '');
-      if (digits.length < 11) { say('Укажите телефон полностью, чтобы мастер мог ответить.', 'err'); phone.focus(); return; }
-      if (!consent.checked) { say('Отметьте согласие на обработку персональных данных.', 'err'); consent.focus(); return; }
-      const endpoint = f.dataset.endpoint;
-      if (!endpoint) { say('Это демо-версия: заявка никуда не отправляется. На готовом сайте она сразу придёт мастеру.'); return; }
-      f.classList.add('sending'); btn.disabled = true; say('Отправляем…');
-      const call = f.dataset.phone ? ` Или позвоните: ${f.dataset.phone}.` : '';
-      try {
-        const fd = new FormData(f);
-        fd.delete('photos[]');
-        fd.set('t', String(Date.now() - opened));
-        for (const file of [...files.files].slice(0, 8)) { const ready = await shrink(file); fd.append('photos[]', ready, ready.name); }
-        const r = await fetch(endpoint, { method: 'POST', body: fd, headers: { Accept: 'application/json' } });
-        const j = await r.json().catch(() => null);
-        if (r.ok && j && j.ok) {
-          f.reset(); thumbs.innerHTML = ''; opened = Date.now();
-          say(j.message || 'Заявка отправлена. Мастер перезвонит вам.', 'ok');
-        } else {
-          const text = (j && j.message) || 'Не получилось отправить заявку.';
-          say(f.dataset.phone && /Позвоните нам, пожалуйста\.$/.test(text) ? text.replace(/Позвоните нам, пожалуйста\.$/, `Позвоните нам: ${f.dataset.phone}.`) : text + call, 'err');
-        }
-      } catch (err) {
-        say('Нет связи с сервером. Проверьте интернет и попробуйте ещё раз.' + call, 'err');
-      } finally {
-        f.classList.remove('sending'); btn.disabled = false;
-      }
-    });
+    const svc = f.querySelector('#fService'), car = f.querySelector('#fCar'), note = f.querySelector('#fNote');
+    const out = f.querySelector('[data-tg-text]'), to = f.querySelector('[data-tg-to]'), send = f.querySelector('#fSend');
+    const text = () => {
+      const lines = [];
+      if (svc && svc.value) lines.push(`Услуга: ${svc.options[svc.selectedIndex].text}`);
+      const c = car ? car.value.trim() : ''; if (c) lines.push(`Машина: ${c}`);
+      const n = note ? note.value.trim() : ''; if (n) lines.push(`Комментарий: ${n}`);
+      return lines.length ? [hello(), ...lines].join('\n') : hello('Хочу записаться на осмотр.');
+    };
+    const upd = () => { if (out) out.textContent = text(); };
+    if (to) to.textContent = tgTo();
+    f.addEventListener('input', upd); f.addEventListener('change', upd); upd();
+    tgLink(send, text);
+    // Enter in a field works like the button
+    f.addEventListener('submit', e => { e.preventDefault(); if (send) send.click(); });
   }
 
   /* ---------- Yandex Metrica: loads only after "Принять", never with Webvisor ---------- */
@@ -329,6 +303,7 @@
     try { reveal(); } catch (e) { console.error(e); }
     try { china(document.getElementById('china')); } catch (e) { console.error(e); }
     try { form(document.getElementById('requestForm')); } catch (e) { console.error(e); }
+    try { document.querySelectorAll('a[data-tg]').forEach(a => tgLink(a, () => a.dataset.tg || hello('Хочу записаться на осмотр.'))); } catch (e) { console.error(e); }
     try { metrika(); } catch (e) { console.error(e); }
     cookie(document.querySelector('.cookie')); menu(); placeholders();
   }

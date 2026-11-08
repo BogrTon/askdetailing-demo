@@ -70,13 +70,9 @@
       stage.classList.remove('day', 'box', 'dusk'); stage.classList.add(b.dataset.v);
       lightSeg.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
     });
-    sec.querySelector('#wrSend').addEventListener('click', () => {
-      const note = document.getElementById('fNote'), svc = document.getElementById('fService');
-      if (note) note.value = `Смена цвета: ${color.name.toLowerCase()}, ${FN[color.finish].toLowerCase()}`;
-      if (svc) svc.value = 'wrap';
-      const c = document.getElementById('contacts'); if (c) c.scrollIntoView({ behavior: reduce() ? 'auto' : 'smooth' });
-      if (window.Site) window.Site.toast('Цвет добавлен в заявку. Осталось оставить телефон.');
-    });
+    // the button opens Telegram with the chosen film ready to send
+    const send = sec.querySelector('#wrSend');
+    if (window.Site && Site.tgLink) Site.tgLink(send, () => `Здравствуйте! Примерил цвет на сайте ${Site.SITE}: ${color.name.toLowerCase()}, ${FN[color.finish].toLowerCase()}.\nХочу узнать цену для своей машины и свободные даты.`);
     renderSwatches(); pick(color);
   }
 
