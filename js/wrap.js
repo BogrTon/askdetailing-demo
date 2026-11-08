@@ -45,7 +45,9 @@
     const stage = sec.querySelector('.studio-stage'), host = sec.querySelector('.studio-car'), sw = sec.querySelector('#wrSw');
     const finSeg = sec.querySelector('.seg[data-g="fin"]'), lightSeg = sec.querySelector('.seg[data-g="light"]');
     const nameEl = sec.querySelector('.sn-name'), finEl = sec.querySelector('.sn-fin'), badge = sec.querySelector('.sn-badge'), priceEl = sec.querySelector('#wrPrice'), metaEl = sec.querySelector('#wrMeta');
-    const wrapPrice = (PR && PR.calc && PR.calc.wrap) || {};
+    // vinyl «от» price from prices.json: white gloss, white matte, chrome; any other colour is colour vinyl
+    const W = (PR && PR.calc && PR.calc.wrap) || {};
+    const wrapFrom = c => c.finish === 'chrome' ? W.chrome : c.white ? (c.finish === 'gloss' ? W.whiteGloss : W.whiteMatte) : W.color;
     let color = byName(COL.month) || COL.list[0], fin = color.finish, cur = stopsOf(color), timer = 0, flip = false;
     host.innerHTML = Car.carSVG('ws', { stops: cur, reflect: true, shadowOpacity: .35, label: 'Примерка цвета плёнки на автомобиле' });
     const grad = host.querySelector('#ws-paint');
@@ -57,7 +59,7 @@
       color = c; flip = false; clearInterval(timer);
       const to = stopsOf(c); Car.tweenStops(grad, cur, to, 750); cur = to;
       nameEl.textContent = c.name; finEl.textContent = `${FN[c.finish]} · плёнка`; badge.hidden = c.name !== COL.month;
-      const base = wrapPrice[c.finish];
+      const base = wrapFrom(c);
       priceEl.textContent = base ? `от ${fmt(Math.round(base / 1000) * 1000)} ₽` : 'Цена по запросу';
       metaEl.textContent = c.finish === 'chrome' || c.finish === 'shift' ? 'Винил · около 7 дней в студии' : 'Винил · около 5 дней в студии';
       sw.querySelectorAll('.swatch').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.name === c.name)));

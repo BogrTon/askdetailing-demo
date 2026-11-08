@@ -119,7 +119,7 @@
       cards.forEach(c => c.classList.toggle('on', c === card));
     };
     cards.forEach(c => { c.addEventListener('mouseenter', () => show(c)); c.addEventListener('focusin', () => show(c)); c.addEventListener('click', () => show(c)); });
-    show(cards.find(c => c.dataset.id === 'impact') || cards[0]);
+    show(cards.find(c => c.dataset.id === 'risk') || cards[0]);
     sec.addEventListener('click', e => {
       const b = e.target.closest('[data-pick-pack]'); if (!b) return;
       const chip = document.querySelector(`.calc [data-p="${b.dataset.pickPack}"]`); if (chip) chip.click();

@@ -38,37 +38,53 @@
   window.Site = { toast, tgHref, tgLink, hello, SITE };
 
   /* ---------- calculator ---------- */
+  // Zone shapes on the side-view car (id, name, minimal standard price, path). Prices live in prices.json → calc.zones:
+  // «от–до» for standard and premium film, from a compact car to an SUV; the car class picks its part of that range.
   const ZONES = [
-    ['fenderR', 'Задние крылья', 32000, 'M80 150 L334 120 L332 168 L338 234 L338 252 L80 252 Z'],
-    ['door', 'Двери', 40000, 'M334 134 L548 128 L556 168 L556 200 L549 232 L338 234 L332 168 Z'],
-    ['fenderF', 'Передние крылья', 17000, 'M552 128 L706 148 L706 252 L546 252 L555 200 L556 168 Z'],
-    ['bumperF', 'Передний бампер', 24000, 'M706 120 L780 120 L780 252 L706 252 Z'],
-    ['bumperR', 'Задний бампер', 18000, 'M20 140 L82 140 L82 252 L20 252 Z'],
-    ['skirt', 'Пороги', 10000, 'M242 224 L566 220 L566 252 L242 252 Z'],
-    ['roof', 'Стойки и крыша', 21000, 'M230 60 L548 60 L548 128 L520 133 L484 106 L462 100 L410 95 L372 98 L330 104 L300 118 L284 137 L230 142 Z'],
-    ['hood', 'Капот', 24000, 'M534 112 L716 146 L716 166 L540 138 Z'],
-    ['head', 'Фары', 7000, null],
-    ['mirror', 'Зеркала', 5000, null]
+    ['fenderR', 'Задние крылья', 0, 'M80 150 L334 120 L332 168 L338 234 L338 252 L80 252 Z'],
+    ['door', 'Двери', 0, 'M334 134 L548 128 L556 168 L556 200 L549 232 L338 234 L332 168 Z'],
+    ['fenderF', 'Передние крылья', 0, 'M552 128 L706 148 L706 252 L546 252 L555 200 L556 168 Z'],
+    ['bumperF', 'Передний бампер', 0, 'M706 120 L780 120 L780 252 L706 252 Z'],
+    ['bumperR', 'Задний бампер', 0, 'M20 140 L82 140 L82 252 L20 252 Z'],
+    ['skirt', 'Пороги', 0, 'M242 224 L566 220 L566 252 L242 252 Z'],
+    ['roof', 'Стойки и крыша', 0, 'M230 60 L548 60 L548 128 L520 133 L484 106 L462 100 L410 95 L372 98 L330 104 L300 118 L284 137 L230 142 Z'],
+    ['hood', 'Капот', 0, 'M534 112 L716 146 L716 166 L540 138 Z'],
+    ['head', 'Фары', 0, null],
+    ['mirror', 'Зеркала', 0, null]
   ];
-  if (DATA && DATA.calc && DATA.calc.zones) ZONES.forEach(z => { if (DATA.calc.zones[z[0]] != null) z[2] = DATA.calc.zones[z[0]]; });
-  window.CarZones = ZONES;
-  const PACKS = DATA && DATA.ppfPacks ? DATA.ppfPacks.map(p => [p.name, p.zones])
-    : [['Оптика', ['head']], ['Зоны риска', ['bumperF', 'head', 'mirror', 'skirt']], ['Ударная часть', ['bumperF', 'hood', 'fenderF', 'head', 'mirror']], ['Весь кузов', ZONES.map(z => z[0])]];
-  const COLORS = [['Обсидиан', '#16181c'], ['Графит', '#4b5158'], ['Хаки', '#5b6341'], ['Изумруд', '#0e5e48'], ['Ультрамарин', '#2244b0'], ['Песок', '#c4b493'], ['Бордо', '#6b1424'], ['Перламутр', '#eceff1']];
-  const FIN = { gloss: 'глянец', satin: 'сатин', matte: 'мат', chrome: 'хром' };
-  const CLS = { c: [.85, 'компакт'], s: [1, 'седан'], k: [1.1, 'кроссовер'], x: [1.25, 'внедорожник'] };
-  const FILM = { std: [1, 'стандарт'], pre: [1.3, 'премиум'] };
-  const WRAP = { gloss: 150000, satin: 160000, matte: 160000, chrome: 260000 };
   const CD = (DATA && DATA.calc) || {};
-  Object.keys(CLS).forEach(k => { if (CD.classes && CD.classes[k] != null) CLS[k][0] = CD.classes[k]; });
-  Object.keys(FILM).forEach(k => { if (CD.films && CD.films[k] != null) FILM[k][0] = CD.films[k]; });
-  Object.assign(WRAP, CD.wrap || {});
+  const ZP = CD.zones || {};
+  const zr = (id, film) => (ZP[id] && ZP[id][film]) || [0, 0];
+  ZONES.forEach(z => { z[2] = zr(z[0], 'std')[0]; });
+  window.CarZones = ZONES;
+  const PACKS = ((DATA && DATA.ppfPacks) || []).map(p => ({ id: p.id, name: p.name, zones: p.zones, from: p.from, days: p.days }));
+  const COLORS = [['Обсидиан', '#16181c'], ['Графит', '#4b5158'], ['Хаки', '#5b6341'], ['Изумруд', '#0e5e48'], ['Ультрамарин', '#2244b0'], ['Песок', '#c4b493'], ['Бордо', '#6b1424'], ['Белый', '#eceff1', true]];
+  const FIN = { gloss: 'глянец', satin: 'сатин', matte: 'мат', chrome: 'хром' };
+  const CLS = { c: 'компакт', s: 'седан', k: 'кроссовер', x: 'внедорожник' };
+  const FILM = { std: 'стандарт', pre: 'премиум' };
+  const WIN = Object.assign({ c: [0, .4], s: [.2, .6], k: [.4, .8], x: [.6, 1] }, CD.classes || {});
+  const WRAP = Object.assign({ whiteGloss: 110000, whiteMatte: 140000, color: 180000, chrome: 350000 }, CD.wrap || {});
+  const WCLS = Object.assign({ c: 1, s: 1.18, k: 1.29, x: 1.47 }, CD.wrapClasses || {});
   const SPREAD = CD.spread != null ? CD.spread : .15;
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const samePack = ids => PACKS.find(p => p.zones.length === ids.length && p.zones.every(z => ids.includes(z)));
+  // film price for a set of zones: sum of each zone's range at the class position; an exact package keeps its own «от» price
+  function ppfRange(ids, film, cls) {
+    const [t0, t1] = WIN[cls] || [0, 1];
+    let lo = 0, hi = 0, minStd = 0;
+    ids.forEach(id => { const r = zr(id, film); lo += lerp(r[0], r[1], t0); hi += lerp(r[0], r[1], t1); minStd += zr(id, 'std')[0]; });
+    const pack = samePack(ids), k = pack && pack.from && minStd ? pack.from / minStd : 1;
+    return { lo: lo * k, hi: hi * k, pack, minStd };
+  }
+  // vinyl «от» price: white gloss and white matte have their own prices, chrome too, everything else is colour vinyl
+  const wrapFrom = (white, fin) => fin === 'chrome' ? WRAP.chrome : white ? (fin === 'gloss' ? WRAP.whiteGloss : WRAP.whiteMatte) : WRAP.color;
+  window.Prices = { ppfRange, wrapFrom, WRAP };
 
   function calc(root) {
     if (!root) return;
     const P = Car.P;
-    const st = { mode: 'ppf', cls: 's', film: 'std', fin: 'gloss', color: '#0e5e48', sel: new Set(PACKS[2][1]) };
+    const first = PACKS.find(p => p.id === 'risk') || PACKS[0];
+    const st = { mode: 'ppf', cls: 's', film: 'std', fin: 'gloss', color: '#0e5e48', sel: new Set(first ? first.zones : ['hood']) };
     const zp = z => `<path class="zone" data-z="${z[0]}" d="${z[3] || P[z[0] === 'head' ? 'head' : 'mirror']}"><title>${z[1]}</title></path>`;
     const ppfStops = () => Car.finishStops('#d3d9de', 'gloss');
     const host = root.querySelector('.calc-car');
@@ -80,7 +96,7 @@
     let cur = ppfStops();
     const zb = root.querySelector('#calcZ'), pk = root.querySelector('#calcPk'), sw = root.querySelector('#calcSw');
     zb.innerHTML = ZONES.map(z => `<button type="button" class="chip" data-z="${z[0]}" aria-pressed="false">${z[1]}</button>`).join('');
-    pk.innerHTML = PACKS.map((p, i) => `<button type="button" class="chip" data-p="${i}" aria-pressed="false">${p[0]}</button>`).join('');
+    pk.innerHTML = PACKS.map((p, i) => `<button type="button" class="chip" data-p="${i}" aria-pressed="false">${p.name}</button>`).join('');
     if (sw) sw.innerHTML = COLORS.map(c => `<button type="button" class="swatch" data-c="${c[1]}" aria-pressed="false" aria-label="${c[0]}" title="${c[0]}" style="background:linear-gradient(180deg,${Car.L(c[1], .35)},${c[1]} 50%,${Car.L(c[1], -.45)})"></button>`).join('');
     const priceEl = root.querySelector('#calcPrice'), metaEl = root.querySelector('#calcMeta'), modeEl = root.querySelector('#calcMode');
     const paint = () => { const to = st.mode === 'ppf' ? ppfStops() : Car.finishStops(st.color, st.fin); Car.tweenStops(grad, cur, to, 650); cur = to; };
@@ -90,26 +106,27 @@
       root.classList.toggle('ppfmode', st.mode === 'ppf'); root.classList.toggle('wrapmode', st.mode === 'wrap');
       root.querySelectorAll('.zone').forEach(p => p.classList.toggle('on', st.mode === 'ppf' && st.sel.has(p.dataset.z)));
       zb.querySelectorAll('[data-z]').forEach(b => b.setAttribute('aria-pressed', String(st.sel.has(b.dataset.z))));
-      pk.querySelectorAll('[data-p]').forEach(b => { const s = PACKS[b.dataset.p][1]; b.setAttribute('aria-pressed', String(s.length === st.sel.size && s.every(z => st.sel.has(z)))); });
+      pk.querySelectorAll('[data-p]').forEach(b => { const s = PACKS[b.dataset.p].zones; b.setAttribute('aria-pressed', String(s.length === st.sel.size && s.every(z => st.sel.has(z)))); });
       if (sw) sw.querySelectorAll('[data-c]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.c === st.color)));
       root.querySelectorAll('.seg[data-g]').forEach(s => s.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(st[s.dataset.g] === b.dataset.v))));
-      let lo = 0, meta;
+      let lo = 0, hi = 0, meta;
       if (st.mode === 'ppf') {
-        const chosen = ZONES.filter(z => st.sel.has(z[0])), base = chosen.reduce((a, z) => a + z[2], 0), n = chosen.length;
-        lo = base * CLS[st.cls][0] * FILM[st.film][0];
-        const days = Math.max(1, Math.ceil(base / 45000));
-        meta = n ? `${n} ${plural(n, 'зона', 'зоны', 'зон')} · ${days} ${plural(days, 'день', 'дня', 'дней')} в студии` : 'Выберите хотя бы одну зону';
+        const chosen = ZONES.filter(z => st.sel.has(z[0])), n = chosen.length, pr = ppfRange(chosen.map(z => z[0]), st.film, st.cls);
+        lo = pr.lo; hi = pr.hi;
+        const days = Math.max(1, Math.ceil(pr.minStd / 45000));
+        meta = !n ? 'Выберите хотя бы одну зону' : pr.pack ? `Пакет «${pr.pack.name}» · ${pr.pack.days} в студии` : `${n} ${plural(n, 'зона', 'зоны', 'зон')} · ${days} ${plural(days, 'день', 'дня', 'дней')} в студии`;
         modeEl.textContent = n ? `Защитная плёнка · ${n} ${plural(n, 'зона', 'зоны', 'зон')}` : 'Защитная плёнка';
-        const pack = PACKS.find(p => p[1].length === n && p[1].every(z => st.sel.has(z)));
-        summary = `Защитная плёнка: ${pack ? pack[0].toLowerCase() : chosen.map(z => z[1].toLowerCase()).join(', ')}; ${CLS[st.cls][1]}, плёнка ${FILM[st.film][1]}`;
+        summary = `Защитная плёнка: ${pr.pack ? pr.pack.name.toLowerCase() : chosen.map(z => z[1].toLowerCase()).join(', ')}; ${CLS[st.cls]}, плёнка ${FILM[st.film]}`;
       } else {
-        lo = WRAP[st.fin] * CLS[st.cls][0];
-        const days = st.fin === 'chrome' ? 7 : 5, c = COLORS.find(c => c[1] === st.color);
+        const c = COLORS.find(c => c[1] === st.color);
+        lo = wrapFrom(c && c[2], st.fin) * (WCLS[st.cls] || 1); hi = lo * (1 + SPREAD);
+        const days = st.fin === 'chrome' ? 7 : 5;
         meta = `Полная смена цвета · ${days} дней в студии`;
         modeEl.textContent = `Смена цвета · ${c ? c[0].toLowerCase() : ''}, ${FIN[st.fin]}`;
-        summary = `Смена цвета: ${c ? c[0].toLowerCase() : ''}, ${FIN[st.fin]}; ${CLS[st.cls][1]}`;
+        summary = `Смена цвета: ${c ? c[0].toLowerCase() : ''}, ${FIN[st.fin]}; ${CLS[st.cls]}`;
       }
-      const range = lo ? `${fmt(r1000(lo))} – ${fmt(r1000(lo * (1 + SPREAD)))} ₽` : '—';
+      const a1 = r1000(lo), b1 = Math.max(r1000(hi), a1);
+      const range = lo ? (b1 > a1 ? `${fmt(a1)} – ${fmt(b1)} ₽` : `от ${fmt(a1)} ₽`) : '—';
       priceEl.textContent = range; metaEl.textContent = meta;
       if (lo) summary += ` — ориентировочно ${range}`;
     }
@@ -117,7 +134,7 @@
       const z = e.target.closest('[data-z]');
       if (z && st.mode === 'ppf') { const k = z.dataset.z; st.sel.has(k) ? st.sel.delete(k) : st.sel.add(k); render(); return; }
       const p = e.target.closest('[data-p]');
-      if (p) { st.sel = new Set(PACKS[p.dataset.p][1]); render(); return; }
+      if (p) { st.sel = new Set(PACKS[p.dataset.p].zones); render(); return; }
       const c = e.target.closest('[data-c]');
       if (c) { st.color = c.dataset.c; paint(); render(); return; }
       const b = e.target.closest('.seg[data-g] button');
@@ -127,31 +144,51 @@
     render();
   }
 
-  /* ---------- compare ---------- */
-  const CMP = {
-    ppf: { h: [['Зоны риска', 'от 35 000 ₽'], ['Ударная часть', 'от 60 000 ₽'], ['Весь кузов', 'от 195 000 ₽']],
-      rows: [['Что входит', 'Бампер, фары, зеркала, пороги', 'Бампер, капот, крылья, фары, зеркала', 'Все окрашенные детали'], ['Срок', '1–2 дня', '2–3 дня', '4–6 дней'], ['Плёнка', 'Стандарт или премиум', 'Стандарт или премиум', 'Стандарт или премиум'], ['Самовосстановление', '+', '+', '+'], ['Гарантия', 'По условиям производителя плёнки', 'По условиям производителя плёнки', 'По условиям производителя плёнки']] },
-    cer: { h: [['Экспресс', 'от 15 000 ₽'], ['Стандарт', 'от 35 000 ₽'], ['Максимум', 'от 60 000 ₽']],
-      rows: [['Подготовка', 'Мойка и обезжиривание', '+ полировка в 1 шаг', '+ полировка в 2–3 шага'], ['Слоёв покрытия', '1', '2', '3'], ['Срок', '1 день', '2 дня', '3 дня'], ['Гидрофобный эффект', '+', '+', '+']] },
-    dry: { h: [['Экспресс', 'от 8 000 ₽'], ['Комплексная', 'от 18 000 ₽'], ['С разбором', 'от 25 000 ₽']],
-      rows: [['Сиденья и ковры', '+', '+', '+'], ['Потолок и багажник', '—', '+', '+'], ['Снятие сидений', '—', '—', '+'], ['Кожа', 'Чистка', 'Чистка и пропитка', 'Чистка и пропитка'], ['Срок', '3–4 часа', '1 день', '2 дня']] }
-  };
-  if (DATA) {
-    const packs = (DATA.ppfPacks || []).filter(p => p.id !== 'optics').slice(0, 3);
-    const same = v => [v, v, v];
-    if (packs.length === 3) CMP.ppf = {
-      h: packs.map(p => [p.name, `от ${fmt(p.from)} ₽`]),
-      rows: [['Что входит', ...packs.map(p => p.parts)], ['Срок', ...packs.map(p => p.days)], ['Плёнка', ...same('Стандарт или премиум')], ['Самовосстановление', ...same('+')], ['Гарантия', ...same('По условиям производителя плёнки')]]
+  /* ---------- sound insulation: zones on a top view, the sum goes to Telegram ---------- */
+  function noise(root) {
+    if (!root || !DATA || !DATA.noise) return;
+    const Z = DATA.noise.zones || [], st = { sel: new Set(['doors']), pano: false };
+    const chips = root.querySelector('#nsZ'), priceEl = root.querySelector('#nsPrice'), metaEl = root.querySelector('#nsMeta'), seg = root.querySelector('.seg[data-g="roofType"]');
+    const price = z => z.id === 'roof' && st.pano && z.pano != null ? z.pano : z.price;
+    const label = z => z.id === 'roof' ? `${z.name} ${st.pano ? 'с панорамой' : 'без панорамы'}` : z.name;
+    chips.innerHTML = Z.map(z => `<button type="button" class="chip" data-nz="${z.id}" aria-pressed="false">${z.name}<span class="n"></span></button>`).join('');
+    let summary = '';
+    const render = () => {
+      const chosen = Z.filter(z => st.sel.has(z.id)), sum = chosen.reduce((a, z) => a + price(z), 0), names = chosen.map(z => label(z).toLowerCase()).join(', ');
+      chips.querySelectorAll('[data-nz]').forEach(b => { const z = Z.find(x => x.id === b.dataset.nz); b.setAttribute('aria-pressed', String(st.sel.has(z.id))); b.querySelector('.n').textContent = fmt(price(z)); });
+      root.querySelectorAll('.nz').forEach(g => g.classList.toggle('on', st.sel.has(g.dataset.zone)));
+      if (seg) seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.v === 'pano') === st.pano)));
+      priceEl.textContent = sum ? `от ${fmt(sum)} ₽` : '—';
+      metaEl.textContent = chosen.length ? names[0].toUpperCase() + names.slice(1) : 'Выберите хотя бы одну зону';
+      summary = chosen.length ? `${names} — от ${fmt(sum)} ₽` : '';
     };
-    ['cer', 'dry', 'pol'].forEach(k => { const d = DATA.compare && DATA.compare[k]; if (d) CMP[k] = { h: d.cols.map(c => [c[0], `от ${fmt(c[1])} ₽`]), rows: d.rows }; });
+    const toggle = id => { st.sel.has(id) ? st.sel.delete(id) : st.sel.add(id); render(); };
+    chips.addEventListener('click', e => { const b = e.target.closest('[data-nz]'); if (b) toggle(b.dataset.nz); });
+    root.querySelectorAll('.nz').forEach(g => g.addEventListener('click', () => toggle(g.dataset.zone)));
+    if (seg) seg.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; st.pano = b.dataset.v === 'pano'; render(); });
+    tgLink(root.querySelector('#nsSend'), () => summary ? `Здравствуйте! Посчитал шумоизоляцию на сайте ${SITE}: ${summary}.\nПодскажите, пожалуйста, свободные даты.` : hello('Хочу узнать про шумоизоляцию.'));
+    render();
+  }
+
+  /* ---------- compare ---------- */
+  // tables come from prices.json: film packages (ppfPacks) and compare.pol / compare.dry
+  const CMP = {};
+  if (DATA) {
+    const packs = DATA.ppfPacks || [], th = DATA.film && DATA.film.thickness ? `${DATA.film.thickness} мкм` : '';
+    const same = v => packs.map(() => v);
+    if (packs.length) CMP.ppf = {
+      h: packs.map(p => [p.name, `от ${fmt(p.from)} ₽`]),
+      rows: [['Что входит', ...packs.map(p => p.parts)], ['Срок', ...packs.map(p => p.days)], ['Плёнка', ...same('Стандарт или премиум')], ...(th ? [['Толщина', ...same(th)]] : []), ['Самовосстановление', ...same('+')], ['Гарантия', ...same('По условиям производителя плёнки')]]
+    };
+    Object.keys(DATA.compare || {}).forEach(k => { const d = DATA.compare[k]; if (d && d.cols) CMP[k] = { h: d.cols.map(c => [c[0], `от ${fmt(c[1])} ₽`]), rows: d.rows }; });
   }
   function compare(root) {
     if (!root) return;
     const box = root.querySelector('.cmp-scroll'), seg = root.querySelector('.seg');
     const cell = v => v === '+' ? '<span class="yes" role="img" aria-label="Да">✓</span>' : v === '—' ? '<span class="no" aria-label="Нет">—</span>' : v;
     const render = k => {
-      const d = CMP[k];
-      box.innerHTML = `<table class="cmp"><thead><tr><th scope="col"><span class="sr">Параметр</span></th>${d.h.map(h => `<th scope="col"><span class="n">${h[0]}</span><span class="p">${h[1]}</span></th>`).join('')}</tr></thead><tbody>${d.rows.map(r => `<tr><td>${r[0]}</td>${r.slice(1).map(v => `<td>${cell(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+      const d = CMP[k]; if (!d) { box.textContent = ''; return; }
+      box.innerHTML = `<table class="cmp c${d.h.length}"><thead><tr><th scope="col"><span class="sr">Параметр</span></th>${d.h.map(h => `<th scope="col"><span class="n">${h[0]}</span><span class="p">${h[1]}</span></th>`).join('')}</tr></thead><tbody>${d.rows.map(r => `<tr><td>${r[0]}</td>${r.slice(1).map(v => `<td>${cell(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
     };
     if (seg) seg.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; seg.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); render(b.dataset.v); });
     render(root.dataset.start || 'ppf');
@@ -297,7 +334,8 @@
     try { illos(); } catch (e) { console.error(e); }
     const run = (sel, fn) => { const el = document.querySelector(sel); if (el) try { fn(el); } catch (e) { console.error(e); } };
     run('.hs', Scenes.hero); run('.hl-rail', Scenes.highlights); run('.ba:not([data-draw])', Scenes.ba);
-    try { calc(document.querySelector('.calc')); } catch (e) { console.error(e); }
+    try { calc(document.querySelector('.calc:not(.ns-calc)')); } catch (e) { console.error(e); }
+    try { noise(document.getElementById('noise')); } catch (e) { console.error(e); }
     try { compare(document.getElementById('compare')); } catch (e) { console.error(e); }
     try { works(document.getElementById('works')); } catch (e) { console.error(e); }
     try { reveal(); } catch (e) { console.error(e); }
