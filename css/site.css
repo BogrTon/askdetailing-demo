@@ -593,7 +593,7 @@ a.case:focus-visible{outline:2px solid var(--ice);outline-offset:4px}
 /* footer */
 .foot{background:var(--bg-deep);color:var(--ink-3);font-size:12.5px;line-height:1.55;padding-block:40px calc(110px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
 .foot .wrap{display:grid;gap:18px}
-.foot-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;padding-bottom:24px;border-bottom:1px solid var(--line)}
+.foot-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;padding-bottom:24px;border-bottom:1px solid var(--line)}
 @media (max-width:640px){.foot-cols{grid-template-columns:minmax(0,1fr)}}
 .foot h4{font:500 11.5px/1.4 var(--f-text);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);margin-bottom:12px}
 .foot ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
@@ -999,7 +999,7 @@ a.case:focus-visible{outline:2px solid var(--ice);outline-offset:4px}
   .wk-info h2,.wk-info .eyebrow{padding-right:0}
 }
 
-/* ===== documents: policy, consent, cookie ===== */
+/* ===== documents: policy, consent, cookie (сейчас страниц нет, черновики в archive/dokumenty) ===== */
 .doc-progress{position:fixed;left:0;right:0;top:calc(var(--nav-h) + env(safe-area-inset-top,0px));height:1px;z-index:49;pointer-events:none;opacity:0;transition:opacity .3s,top .6s var(--ease)}
 .nav-hidden .doc-progress{top:env(safe-area-inset-top,0px)}
 .doc-progress.on{opacity:1}
