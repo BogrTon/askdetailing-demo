@@ -114,9 +114,10 @@ img{max-width:100%}
 .nav.hide{transform:translateY(calc(-100% - env(safe-area-inset-top,0px) - 2px))}
 .menu-open .nav.hide{transform:none}
 .nav .wrap{height:100%;display:flex;align-items:center;gap:26px;max-width:calc(var(--wide) + 32px)}
-.logo{display:flex;align-items:center;gap:10px;color:var(--ink);font:500 13px/1 var(--f-display);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
-.logo:hover{text-decoration:none;color:var(--led)}
-.logo svg{width:22px;height:22px;flex:none;color:var(--led);filter:drop-shadow(0 0 6px rgba(119,210,245,.6))}
+/* логотип студии: в шапке logo-sm.svg (без мелкой надписи, линии толще), крупно — logo.svg; исходники в brand/ */
+.logo{display:block;flex:none;line-height:0}
+.logo img{display:block;height:54px;width:auto;transition:filter .45s var(--ease)}
+.logo:hover img{filter:drop-shadow(0 0 14px rgba(170,232,8,.38))}
 .nav-links{display:flex;gap:24px;margin-left:auto;font-size:13.5px}
 .nav-links a{position:relative;color:var(--ink-2);transition:color .25s}
 .nav-links a::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:1px;background:var(--led);box-shadow:0 0 8px var(--glow);transform:scaleX(0);transform-origin:right center;transition:transform .45s var(--ease)}
@@ -134,7 +135,7 @@ img{max-width:100%}
 .mmenu a{display:flex;justify-content:space-between;align-items:center;font:300 24px/1.25 var(--f-display);letter-spacing:-.03em;color:var(--ink);padding:14px 0;border-bottom:1px solid var(--line)}
 .mmenu a::after{content:"→";font:400 18px/1 var(--f-text);color:var(--ink-3)}
 .mmenu a:hover{text-decoration:none;color:var(--led)}
-@media (max-width:520px){.nav .wrap{gap:14px}.logo{font-size:12px}.nav-cta.btn.small{padding:10px 12px;font-size:11px}}
+@media (max-width:520px){.nav .wrap{gap:14px}.logo img{height:44px}.nav-cta.btn.small{padding:10px 12px;font-size:11px}}
 
 /* загрузка на главной: один раз за визит, «включаем свет в боксе» */
 .loader{display:none}
@@ -147,6 +148,7 @@ img{max-width:100%}
 .ld-bar{height:1px;background:var(--line)}
 .ld-bar i{display:block;height:100%;background:var(--led);box-shadow:0 0 12px var(--glow);transform:scaleX(0);transform-origin:left center}
 .ld-t{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+.ld-logo{position:absolute;left:50%;top:44%;width:min(64vw,400px);height:auto;transform:translate(-50%,-50%);animation:lampflick .8s steps(1,end) .12s backwards}
 .loader.out{transform:translateY(-100%);transition:transform .8s var(--ease-io)}
 @media (prefers-reduced-motion:reduce){.js .loader{display:none!important}}
 
@@ -176,13 +178,13 @@ html.lenis{scroll-behavior:auto}
 @media (hover:none),(pointer:coarse){.cursor-glow{display:none}}
 
 /* карточки под лампой: кант светлеет, сверху падает свет, снизу голубой отсвет */
-.film,.pack,.defect,.vs-col,.rv-link,.tl,.hl,.profile,.imap-info,.rev-score,.rev-card,.ck-card{position:relative;border:1px solid var(--line);background:var(--card);transition:border-color .8s var(--ease),box-shadow .8s var(--ease),background-color .5s}
-.film::after,.pack::after,.defect::after,.vs-col::after,.rv-link::after,.tl::after,.hl::after,.profile::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;background:radial-gradient(80% 46% at 50% 0%,rgba(242,251,255,.1),transparent 72%);opacity:0;transition:opacity .9s var(--ease)}
-.film.is-lit,.pack.is-lit,.defect.is-lit,.vs-col.is-lit,.rv-link.is-lit,.tl.is-lit,.hl.is-lit,.profile.is-lit{border-color:rgba(242,251,255,.34);box-shadow:0 40px 90px -56px var(--glow)}
-.film.is-lit::after,.pack.is-lit::after,.defect.is-lit::after,.vs-col.is-lit::after,.rv-link.is-lit::after,.tl.is-lit::after,.hl.is-lit::after,.profile.is-lit::after{opacity:1}
+.film,.pack,.defect,.vs-col,.rv-link,.tl,.hl,.profile,.wash-card,.imap-info,.rev-score,.rev-card,.ck-card{position:relative;border:1px solid var(--line);background:var(--card);transition:border-color .8s var(--ease),box-shadow .8s var(--ease),background-color .5s}
+.film::after,.pack::after,.defect::after,.vs-col::after,.rv-link::after,.tl::after,.hl::after,.profile::after,.wash-card::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;background:radial-gradient(80% 46% at 50% 0%,rgba(242,251,255,.1),transparent 72%);opacity:0;transition:opacity .9s var(--ease)}
+.film.is-lit,.pack.is-lit,.defect.is-lit,.vs-col.is-lit,.rv-link.is-lit,.tl.is-lit,.hl.is-lit,.profile.is-lit,.wash-card.is-lit{border-color:rgba(242,251,255,.34);box-shadow:0 40px 90px -56px var(--glow)}
+.film.is-lit::after,.pack.is-lit::after,.defect.is-lit::after,.vs-col.is-lit::after,.rv-link.is-lit::after,.tl.is-lit::after,.hl.is-lit::after,.profile.is-lit::after,.wash-card.is-lit::after{opacity:1}
 @media (hover:hover){
-  .film:hover,.pack:hover,.defect:hover,.vs-col:hover,.rv-link:hover,.tl:hover,.hl:hover,.profile:hover{border-color:rgba(242,251,255,.34);box-shadow:0 40px 90px -56px var(--glow)}
-  .film:hover::after,.pack:hover::after,.defect:hover::after,.vs-col:hover::after,.rv-link:hover::after,.tl:hover::after,.hl:hover::after,.profile:hover::after{opacity:1}
+  .film:hover,.pack:hover,.defect:hover,.vs-col:hover,.rv-link:hover,.tl:hover,.hl:hover,.profile:hover,.wash-card:hover{border-color:rgba(242,251,255,.34);box-shadow:0 40px 90px -56px var(--glow)}
+  .film:hover::after,.pack:hover::after,.defect:hover::after,.vs-col:hover::after,.rv-link:hover::after,.tl:hover::after,.hl:hover::after,.profile:hover::after,.wash-card:hover::after{opacity:1}
 }
 
 /* scroll reveal (tools.js adds .rv only when motion is allowed): сдвиг до 26px, 0,8 с */
@@ -457,6 +459,30 @@ a.case:focus-visible{outline:2px solid var(--ice);outline-offset:4px}
 .nz[data-zone="roof"].on rect{fill:rgba(119,210,245,.08);stroke:var(--led)}
 @media (max-width:940px){.ns-calc .calc-view{min-height:0}.ns-car svg{max-height:46svh}}
 
+/* мойка: четыре комплекса карточками, на телефоне листаются вбок */
+.wash{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;counter-reset:w}
+.wash-card{display:flex;flex-direction:column;gap:20px;padding:26px 24px 24px;counter-increment:w}
+.wash-head{display:grid;gap:6px}
+.wash-k{display:flex;justify-content:space-between;gap:12px;font:500 11.5px/1.3 var(--f-text);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+.wash-k::after{content:"0" counter(w);font-variant-numeric:tabular-nums;letter-spacing:.08em;transition:color .6s}
+.wash-card.is-lit .wash-k::after{color:var(--led)}
+.wash-card h3{font-size:clamp(20px,1.8vw,24px)}
+.wash-price{margin-top:6px;color:var(--ink-2);font-size:14px}
+.wash-price b{font:300 clamp(24px,2.3vw,30px)/1 var(--f-display);letter-spacing:-.03em;color:var(--led);font-variant-numeric:tabular-nums;white-space:nowrap;margin-left:4px}
+.wash-list{list-style:none;margin:0;padding:18px 0 0;border-top:1px solid var(--line);display:grid;gap:9px;align-content:start;font-size:14.5px;line-height:1.4;color:var(--ink-2)}
+.wash-list li{position:relative;padding-left:20px}
+.wash-list li::before{content:"";position:absolute;left:0;top:.68em;width:10px;height:1px;background:var(--ice);box-shadow:0 0 6px var(--glow)}
+.wash-card .btn{margin-top:auto;align-self:stretch;position:relative;z-index:4}
+.wash-fine{margin-top:22px;text-align:center;font-size:13px;color:var(--ink-3)}
+@media (max-width:1100px){.wash{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){
+  .wash{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none;
+    margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px))) calc(-1 * max(16px,env(safe-area-inset-right,0px)));
+    padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));scroll-padding-inline:max(16px,env(safe-area-inset-left,0px))}
+  .wash::-webkit-scrollbar{display:none}
+  .wash-card{flex:0 0 84%;scroll-snap-align:start}
+}
+
 /* китайские марки */
 .cn{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(36px,6vw,88px);align-items:start}
 @media (max-width:900px){.cn{grid-template-columns:minmax(0,1fr)}}
@@ -595,6 +621,9 @@ a.case:focus-visible{outline:2px solid var(--ice);outline-offset:4px}
 .foot .wrap{display:grid;gap:18px}
 .foot-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;padding-bottom:24px;border-bottom:1px solid var(--line)}
 @media (max-width:640px){.foot-cols{grid-template-columns:minmax(0,1fr)}}
+.foot-brand a{display:inline-block;line-height:0}
+.foot-brand img{display:block;width:210px;height:auto;margin:-4px 0 12px -3px}
+.foot-brand p{margin:0}
 .foot h4{font:500 11.5px/1.4 var(--f-text);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);margin-bottom:12px}
 .foot ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 .foot a{color:var(--ink-2);font-size:13.5px}

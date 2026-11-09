@@ -188,7 +188,7 @@
   }
 
   /* ---------- карточки: с мышью загораются под курсором (CSS), на телефоне — в середине экрана ---------- */
-  const CARDS = '.case, .wk-card, .film, .pack, .defect, .vs-col, .rv-link, .tl, .hl, .profile';
+  const CARDS = '.case, .wk-card, .film, .pack, .defect, .vs-col, .rv-link, .tl, .hl, .profile, .wash-card';
   function cards() {
     const list = [...document.querySelectorAll(CARDS)];
     if (reduce) { list.forEach(c => c.classList.add('is-lit')); return; }
