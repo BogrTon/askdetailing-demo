@@ -8,7 +8,7 @@
   function chips(stage) {
     const host = stage.querySelector('.ppf-car'), cv = stage.querySelector('canvas.chips');
     host.innerHTML = Car.carSVG('pf', { stops: Car.finishStops('#20262d', 'gloss'), shadowOpacity: .85, label: 'Автомобиль с плёнкой на передней части',
-      clipped: '<rect x="536" y="60" width="264" height="200" fill="rgba(30,159,206,.26)"/>' });
+      clipped: '<rect x="536" y="60" width="264" height="200" fill="rgba(127,191,10,.26)"/>' });
     const svg = host.querySelector('svg');
     // impact points on the hood, nose, bumper and mirror, in the car's viewBox units
     const targets = [[600, 137], [650, 145], [696, 156], [726, 165], [744, 180], [752, 200], [752, 220], [532, 139]];
@@ -34,7 +34,7 @@
       x.clearRect(0, 0, w, h);
       flashes.forEach(f => {
         const k = f.t / .5;
-        x.strokeStyle = `rgba(80,190,240,${((1 - k) * .9).toFixed(3)})`; x.lineWidth = 2; x.beginPath(); x.arc(f.x, f.y, 4 + k * 24, 0, Math.PI * 2); x.stroke();
+        x.strokeStyle = `rgba(166,224,30,${((1 - k) * .9).toFixed(3)})`; x.lineWidth = 2; x.beginPath(); x.arc(f.x, f.y, 4 + k * 24, 0, Math.PI * 2); x.stroke();
         x.fillStyle = `rgba(225,246,255,${(1 - k).toFixed(3)})`; x.beginPath(); x.arc(f.x, f.y, 2.6 * (1 - k) + 1, 0, Math.PI * 2); x.fill();
       });
       stones.forEach(s => {

@@ -2,7 +2,8 @@
 (function () {
   const reduce = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fmt = n => Math.round(n).toLocaleString('ru-RU');
-  const plural = (n, a, b, c) => { const m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20) ? b : c); };
+  const accent = () => getComputedStyle(document.documentElement).getPropertyValue('--acc').trim() || '#a6e01e';
+  const plural =(n, a, b, c) => { const m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? a : (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20) ? b : c); };
   const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
   // Prices come from src/data/prices.json, injected by the build into <script id="prices-data">.
   const DATA = (() => { try { return JSON.parse(document.getElementById('prices-data').textContent); } catch (e) { return null; } })();
@@ -102,6 +103,32 @@
     const paint = () => { const to = st.mode === 'ppf' ? ppfStops() : Car.finishStops(st.color, st.fin); Car.tweenStops(grad, cur, to, 650); cur = to; };
     const r1000 = v => Math.round(v / 1000) * 1000;
     let summary = '';
+    // 2D или 3D: 3D-модуль с Three.js грузится только по нажатию «3D»
+    const vseg = root.querySelector('.view-seg'), box3d = root.querySelector('.calc-3d'), note = root.querySelector('.calc-note'), note2d = note ? note.textContent : '';
+    const play = box3d && box3d.querySelector('.c3d-play');
+    let view3d = null, loading3d = false, is3d = false;
+    const state3d = () => ({ mode: st.mode, body: st.cls, zones: [...st.sel], paint: { hex: st.color, finish: st.fin } });
+    const sync3d = () => {
+      if (note) note.textContent = !is3d ? note2d : st.mode === 'ppf' ? 'Потяните, чтобы повернуть машину. Нажмите на деталь, чтобы добавить её в расчёт.' : 'Потяните, чтобы повернуть машину. Новый цвет ложится полосой, как плёнка.';
+      if (play) play.hidden = !view3d || st.mode !== 'ppf';
+      if (view3d) view3d.set(state3d());
+    };
+    async function setView(v) {
+      is3d = v === '3d';
+      vseg.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === v)));
+      host.hidden = is3d; box3d.hidden = !is3d; root.classList.toggle('is3d', is3d); sync3d();
+      if (!is3d || view3d || loading3d) return;
+      loading3d = true; box3d.classList.add('loading');
+      try {
+        const m = await import('./car3d.js?v=cb09d02e');
+        view3d = await m.mount(box3d, { ...state3d(), accent: accent(), onZone: z => { st.sel.has(z) ? st.sel.delete(z) : st.sel.add(z); render(); } });
+      } catch (e) {
+        console.error(e); box3d.dataset.msg = 'Этот браузер не показывает 3D. Схема 2D работает как раньше.'; box3d.classList.add('failed');
+        setTimeout(() => { box3d.classList.remove('failed'); setView('2d'); }, 2600);
+      } finally { loading3d = false; box3d.classList.remove('loading'); sync3d(); }
+    }
+    if (vseg && box3d) vseg.addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) setView(b.dataset.view); });
+    if (play) play.addEventListener('click', () => view3d && view3d.applyFilm());
     function render() {
       root.classList.toggle('ppfmode', st.mode === 'ppf'); root.classList.toggle('wrapmode', st.mode === 'wrap');
       root.querySelectorAll('.zone').forEach(p => p.classList.toggle('on', st.mode === 'ppf' && st.sel.has(p.dataset.z)));
@@ -129,6 +156,7 @@
       const range = lo ? (b1 > a1 ? `${fmt(a1)} – ${fmt(b1)} ₽` : `от ${fmt(a1)} ₽`) : '—';
       priceEl.textContent = range; metaEl.textContent = meta;
       if (lo) summary += ` — ориентировочно ${range}`;
+      sync3d();
     }
     root.addEventListener('click', e => {
       const z = e.target.closest('[data-z]');
@@ -200,7 +228,7 @@
     root.querySelectorAll('.case-pic[data-car]').forEach((el, i) => {
       const [kind, c1, c2] = el.dataset.car.split(':');
       const o = { shadowOpacity: .35, rimOpacity: .5, label: el.dataset.label || 'Автомобиль' };
-      if (kind === 'ppf') { o.stops = Car.finishStops('#d3d9de', 'gloss'); o.clipped = '<rect x="536" y="60" width="264" height="200" fill="rgba(30,159,206,.4)"/>'; }
+      if (kind === 'ppf') { o.stops = Car.finishStops('#d3d9de', 'gloss'); o.clipped = '<rect x="536" y="60" width="264" height="200" fill="rgba(127,191,10,.42)"/>'; }
       else o.stops = Car.finishStops(c1, kind, c2);
       el.insertAdjacentHTML('beforeend', Car.carSVG('cs' + i, o));
     });
@@ -282,7 +310,7 @@
   function illos() {
     document.querySelectorAll('[data-ill="ppf"]').forEach((el, i) => {
       el.innerHTML = Car.carSVG('il' + i, { stops: Car.finishStops('#d3d9de', 'gloss'), shadowOpacity: .25, rimOpacity: .4, label: 'Передняя часть машины под плёнкой',
-        clipped: '<rect x="536" y="60" width="264" height="200" fill="rgba(30,159,206,.4)"/>' });
+        clipped: '<rect x="536" y="60" width="264" height="200" fill="rgba(127,191,10,.42)"/>' });
     });
   }
 
@@ -305,29 +333,7 @@
     });
   }
 
-  /* scroll reveal: [data-rv] fades in itself, [data-rv-group] fades in its children one by one */
-  function reveal() {
-    if (reduce() || !('IntersectionObserver' in window)) return;
-    const items = [...document.querySelectorAll('[data-rv]')];
-    document.querySelectorAll('[data-rv-group]').forEach(g => items.push(...g.children));
-    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: .1 });
-    items.forEach(el => { el.classList.add('rv'); io.observe(el); });
-  }
-
-  /* Chinese brands block: the share counts up when it scrolls in */
-  function china(root) {
-    const b = root && root.querySelector('[data-count]');
-    if (!b || reduce() || !('IntersectionObserver' in window)) return;
-    const to = +b.dataset.count; b.textContent = '0';
-    const io = new IntersectionObserver(es => {
-      if (!es.some(e => e.isIntersecting)) return;
-      io.disconnect();
-      const t0 = performance.now(), dur = 1500;
-      const step = t => { const k = Math.min(1, (t - t0) / dur); b.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(step); };
-      requestAnimationFrame(step);
-    }, { threshold: .35 });
-    io.observe(b);
-  }
+  /* Блоки больше не появляются при прокрутке и цифры не «набегают»: страница сразу видна целиком. */
 
   function init() {
     try { typo(); } catch (e) { console.error(e); }
@@ -338,8 +344,6 @@
     try { noise(document.getElementById('noise')); } catch (e) { console.error(e); }
     try { compare(document.getElementById('compare')); } catch (e) { console.error(e); }
     try { works(document.getElementById('works')); } catch (e) { console.error(e); }
-    try { reveal(); } catch (e) { console.error(e); }
-    try { china(document.getElementById('china')); } catch (e) { console.error(e); }
     try { form(document.getElementById('requestForm')); } catch (e) { console.error(e); }
     try { document.querySelectorAll('a[data-tg]').forEach(a => tgLink(a, () => a.dataset.tg || hello('Хочу записаться на осмотр.'))); } catch (e) { console.error(e); }
     try { metrika(); } catch (e) { console.error(e); }

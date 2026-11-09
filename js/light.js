@@ -67,7 +67,7 @@
       const c = cv.getContext('2d');
       c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
       c.lineCap = 'round'; c.lineWidth = small ? 2 : 3;
-      c.strokeStyle = 'rgb(246,250,255)'; c.shadowColor = 'rgba(185,222,255,0.95)'; c.shadowBlur = idx ? (small ? 10 : 16) : 0;
+      c.strokeStyle = 'rgb(246,250,255)'; c.shadowColor = 'rgba(236,242,246,0.95)'; c.shadowBlur = idx ? (small ? 10 : 16) : 0;
       for (let row = -1, y = -s; y < H + s * 2; row++, y += s * 1.5) {
         const a = Math.min(1, 1.2 - fade * y / H); // ниже от потолка — слабее
         if (a <= 0.02) continue;
@@ -177,24 +177,17 @@
 
   /* ---------- слова и полосы под лампой загораются, когда попадают в кадр ---------- */
   function lampWords() {
-    const els = [...document.querySelectorAll('.band-head, .ppf-copy, .pl-copy, .wr-copy, .dr-copy, .wk-hero .wrap, .doc-hero .wrap, .nf .wrap, .heal-copy, .cn-copy, .tn-copy, .srv-head, .steps')];
-    document.querySelectorAll('.steps').forEach(s => [...s.children].forEach((li, i) => li.style.setProperty('--n', i)));
-    if (reduce || !('IntersectionObserver' in window)) { els.forEach(e => e.classList.add('lamp-on')); return; }
-    const io = new IntersectionObserver(es => es.forEach(e => {
-      if (!e.isIntersecting) return;
-      io.unobserve(e.target); e.target.classList.remove('lamp-wait'); e.target.classList.add('lamp-on');
-    }), { rootMargin: '0px 0px -12% 0px', threshold: 0.2 });
-    els.forEach(e => { e.classList.add('lamp-wait'); io.observe(e); });
+    // заголовки сразу горят: без мигания при прокрутке (мигает только первый экран главной)
+    document.querySelectorAll(".band-head, .ppf-copy, .pl-copy, .wr-copy, .dr-copy, .wk-hero .wrap, .doc-hero .wrap, .nf .wrap, .heal-copy, .cn-copy, .tn-copy, .srv-head, .steps").forEach(e => e.classList.add("lamp-on"));
   }
+
 
   /* ---------- карточки: с мышью загораются под курсором (CSS), на телефоне — в середине экрана ---------- */
   const CARDS = '.case, .wk-card, .film, .pack, .defect, .vs-col, .rv-link, .tl, .hl, .profile, .wash-card';
   function cards() {
     const list = [...document.querySelectorAll(CARDS)];
-    if (reduce) { list.forEach(c => c.classList.add('is-lit')); return; }
-    if (!touch || !('IntersectionObserver' in window)) return;
-    const io = new IntersectionObserver(es => es.forEach(e => e.target.classList.toggle('is-lit', e.isIntersecting)), { rootMargin: '-38% 0px -38% 0px', threshold: 0 });
-    list.forEach(c => io.observe(c));
+    // с мышью карточки загораются под курсором (CSS); на телефоне горят все сразу, без вспышек при прокрутке
+    if (reduce || touch) list.forEach(c => c.classList.add('is-lit'));
   }
 
   /* ---------- услуги на главной: лента едет вбок, пока страница прокручивается ---------- */
