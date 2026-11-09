@@ -8,14 +8,16 @@
 
   /* ---------- hero ---------- */
   function hero(root) {
-    const st = root.querySelector('.hs-sticky'), cv = root.querySelector('.hs-lights'), carHost = root.querySelector('.hs-car');
+    const track = root.querySelector('.hs-track'), st = root.querySelector('.hs-sticky'), cv = root.querySelector('.hs-lights');
+    const carHost = root.querySelector('.hs-car'), layerA = root.querySelector('.hs-layer.a'), layerB = root.querySelector('.hs-layer.b');
+    const nums = [...root.querySelectorAll('[data-to]')];
     carHost.innerHTML = Car.carSVG('hs', {
       stops: Car.finishStops('#111418', 'gloss'), reflect: true, shadowOpacity: .9, label: 'Автомобиль в детейлинг-боксе под гексагональным светом',
-      defs: '<linearGradient id="hs-sweep" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="300" y2="0" gradientTransform="translate(520 0)"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".4"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>',
+      defs: '<linearGradient id="hs-sweep" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="300" y2="0" gradientTransform="translate(1400 0)"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>',
       clipped: '<rect x="-120" y="60" width="1040" height="200" fill="url(#hs-sweep)" transform="skewX(-18)"/>'
     });
-    let ctx, w = 0, h = 0, horizon = 0, off, on;
-    const lit = 1;
+    const sweep = carHost.querySelector('#hs-sweep');
+    let ctx, w = 0, h = 0, horizon = 0, off, on, lit = 1;
     function build() {
       let d; [ctx, w, h, d] = fit(cv); if (!w || !h) return;
       horizon = h * .52;
@@ -54,8 +56,23 @@
     }
     new ResizeObserver(() => { build(); draw(lit); }).observe(st);
     build();
-    // свет в боксе уже включён: сцена стоит на месте, без прокрутки-анимации (меньше движения на странице)
-    draw(1);
+    if (reduce()) { draw(1); return; }
+    track.classList.add('on');
+    let tick = false;
+    const upd = () => {
+      tick = false;
+      const r = track.getBoundingClientRect(), top = parseFloat(getComputedStyle(st).top) || 0, total = r.height - st.offsetHeight;
+      const p = total > 0 ? clamp((top - r.top) / total, 0, 1) : 1;
+      const a = 1 - clamp((p - .36) / .14, 0, 1), b = clamp((p - .56) / .14, 0, 1);
+      st.style.setProperty('--a', a.toFixed(3)); st.style.setProperty('--b', b.toFixed(3)); st.style.setProperty('--e', clamp(p / .42, 0, 1).toFixed(3));
+      layerA.classList.toggle('off', a < .3); layerB.classList.toggle('live', b > .6);
+      sweep.setAttribute('gradientTransform', `translate(${(-460 + 1800 * clamp((p - .3) / .4, 0, 1)).toFixed(1)} 0)`);
+      lit = clamp((p - .02) / .36, 0, 1); draw(lit);
+      nums.forEach(n => { n.textContent = (n.dataset.pre || '') + Math.round(+n.dataset.to * b) + (n.dataset.suf || ''); });
+    };
+    addEventListener('scroll', () => { if (!tick) { tick = true; requestAnimationFrame(upd); } }, { passive: true });
+    addEventListener('resize', upd);
+    upd();
   }
 
   /* ---------- before/after paint panel (shared by the slider and a highlight card) ---------- */
@@ -118,9 +135,16 @@
 
   /* ---------- highlight visuals ---------- */
   function highlights(rail) {
-    // карточка смены цвета: машина в изумрудной плёнке, без смены цветов по таймеру
+    // colour change card: the car cycles through films while visible
     const host = rail.querySelector('[data-vis="color"]');
-    if (host) host.innerHTML = Car.carSVG('hlc', { stops: Car.finishStops('#0e5e48', 'gloss'), shadowOpacity: .3, rimOpacity: .5, label: 'Автомобиль в изумрудной глянцевой плёнке' });
+    if (host) {
+      const list = [['#0e5e48', 'gloss', 'Изумруд, глянец'], ['#2244b0', 'gloss', 'Ультрамарин, глянец'], ['#c4b493', 'satin', 'Песок, сатин'], ['#4b5158', 'matte', 'Графит, мат'], ['#6b1424', 'gloss', 'Бордо, глянец']];
+      let i = 0, cur = Car.finishStops(list[0][0], list[0][1]), timer = 0;
+      host.innerHTML = Car.carSVG('hlc', { stops: cur, shadowOpacity: .3, rimOpacity: .5, label: 'Автомобиль меняет цвет плёнки' });
+      const grad = host.querySelector('#hlc-paint'), chip = rail.querySelector('[data-chip="color"]');
+      const next = () => { i = (i + 1) % list.length; const to = Car.finishStops(list[i][0], list[i][1]); Car.tweenStops(grad, cur, to, 900); cur = to; if (chip) chip.textContent = list[i][2]; };
+      if (!reduce()) whenVisible(host, () => { if (!timer) timer = setInterval(next, 2600); }, () => { clearInterval(timer); timer = 0; });
+    }
     // ceramic card: beads on a dark panel
     const cer = rail.querySelector('[data-vis="beads"]');
     if (cer) new ResizeObserver(() => {

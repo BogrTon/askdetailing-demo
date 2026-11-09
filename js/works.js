@@ -66,6 +66,12 @@
       grid.addEventListener('click', () => { shown = false; peek.classList.remove('on'); });
     }
 
+    /* ---------- reveal cards as they scroll in ---------- */
+    if (!reduce() && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -6% 0px', threshold: .08 });
+      cards.forEach(c => { c.classList.add('rv'); io.observe(c); });
+    }
+
     /* ---------- work sheet with a swipeable photo gallery ---------- */
     const modal = document.getElementById('wkModal'), sheet = modal.querySelector('.wk-sheet');
     const track = document.getElementById('wkTrack'), thumbs = document.getElementById('wkThumbs'), counter = document.getElementById('wkCounter');
